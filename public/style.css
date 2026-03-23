@@ -46,6 +46,6 @@ button {
 .bar {
   height: 100%;
   width: 0%;
-  background: #22c55e;
+  background: #3b82f6; /* azul */
   transition: width 0.3s;
 }
