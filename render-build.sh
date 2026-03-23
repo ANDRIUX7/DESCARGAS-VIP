@@ -1,2 +1,1 @@
-apt-get update
-apt-get install -y yt-dlp ffmpeg
+pip install yt-dlp
