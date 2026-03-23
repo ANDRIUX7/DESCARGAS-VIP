@@ -1,16 +1,30 @@
-async function obtenerInfo() {
-  const url = document.getElementById("url").value;
+function login() {
+  const pass = document.getElementById("pass").value;
 
-  const res = await fetch(`/info?url=${encodeURIComponent(url)}`);
-  const data = await res.json();
-
-  document.getElementById("preview").innerHTML = `
-    <h3>${data.title}</h3>
-    <img src="${data.thumbnail}">
-  `;
+  if (pass === "ANDRIUXVIP7") {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+  } else {
+    alert("Contraseña incorrecta");
+  }
 }
 
-function descargar(tipo) {
+function descargar() {
   const url = document.getElementById("url").value;
-  window.location.href = `/download?url=${encodeURIComponent(url)}&type=${tipo}`;
+  const bar = document.getElementById("bar");
+
+  let progreso = 0;
+
+  const interval = setInterval(() => {
+    progreso += 10;
+    bar.style.width = progreso + "%";
+
+    if (progreso >= 90) clearInterval(interval);
+  }, 500);
+
+  window.location.href = `/download?url=${encodeURIComponent(url)}`;
+
+  setTimeout(() => {
+    bar.style.width = "100%";
+  }, 4000);
 }
