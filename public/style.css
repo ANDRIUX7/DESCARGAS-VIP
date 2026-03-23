@@ -49,3 +49,14 @@ button {
   background: #3b82f6; /* azul */
   transition: width 0.3s;
 }
+.icons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.icons img {
+  width: 25px;
+  height: 25px;
+}
