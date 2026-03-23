@@ -1,33 +1,21 @@
 const express = require("express");
 const { exec } = require("child_process");
 const fs = require("fs");
+const path = require("path");
 
 const app = express();
 app.use(express.static("public"));
 
-app.get("/info", (req, res) => {
-  const url = req.query.url;
-
-  exec(`yt-dlp -j "${url}"`, (err, stdout) => {
-    if (err) return res.status(500).send("Error");
-
-    const data = JSON.parse(stdout);
-
-    res.json({
-      title: data.title,
-      thumbnail: data.thumbnail
-    });
-  });
-});
-
+// DESCARGA
 app.get("/download", (req, res) => {
   const url = req.query.url;
 
   if (!url) return res.send("Falta URL");
 
-  const command = `yt-dlp -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "%(title)s.%(ext)s" "${url}"`;
+  // evita caracteres problemáticos en nombres
+  const output = "%(title).50s.%(ext)s";
 
-  const { exec } = require("child_process");
+  const command = `yt-dlp -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "${output}" "${url}"`;
 
   exec(command, (err, stdout, stderr) => {
     if (err) {
@@ -35,14 +23,33 @@ app.get("/download", (req, res) => {
       return res.send("Error al descargar");
     }
 
-    // buscar el archivo descargado
-    const fs = require("fs");
-    const files = fs.readdirSync("./").filter(f => f.endsWith(".mp4"));
+    // buscar archivo más reciente
+    const files = fs.readdirSync("./")
+      .filter(f => f.endsWith(".mp4"))
+      .map(f => ({
+        name: f,
+        time: fs.statSync(f).mtime.getTime()
+      }))
+      .sort((a, b) => b.time - a.time);
 
-    const file = files[files.length - 1];
+    if (files.length === 0) {
+      return res.send("No se encontró el archivo");
+    }
 
-    res.download(file, file, () => {
-      fs.unlinkSync(file);
+    const file = files[0].name;
+    const filePath = path.join(__dirname, file);
+
+    res.download(filePath, file, (err) => {
+      if (!err) {
+        fs.unlinkSync(filePath); // borrar después
+      }
     });
   });
+});
+
+// 🔥 IMPORTANTE PARA RENDER
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("🔥 Server corriendo en puerto " + PORT);
 });
