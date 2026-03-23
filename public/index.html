@@ -2,22 +2,26 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Downloader DIOS</title>
+<title>DESCARGAS VIP</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-<div class="card">
-  <h2>Downloader PRO</h2>
 
+<div class="card" id="login">
+  <h2>Acceso VIP</h2>
+  <input type="password" id="pass" placeholder="Contraseña">
+  <button onclick="login()">Entrar</button>
+</div>
+
+<div class="card" id="app" style="display:none;">
+  <h2>DESCARGAS VIP</h2>
   <input id="url" placeholder="Pega el link del video">
+  <button onclick="descargar()">Descargar</button>
 
-  <button onclick="obtenerInfo()">Ver info</button>
-
-  <div id="preview"></div>
-
-  <button onclick="descargar('video')">Descargar HD</button>
-  <button onclick="descargar('audio')">Descargar MP3</button>
+  <div class="progress">
+    <div class="bar" id="bar"></div>
+  </div>
 </div>
 
 <script src="app.js"></script>
