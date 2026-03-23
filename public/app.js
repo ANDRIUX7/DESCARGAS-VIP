@@ -16,15 +16,11 @@ function descargar() {
   let progreso = 0;
 
   const interval = setInterval(() => {
-    progreso += 10;
+    progreso += 1;
     bar.style.width = progreso + "%";
 
-    if (progreso >= 90) clearInterval(interval);
-  }, 500);
+    if (progreso >= 100) clearInterval(interval);
+  }, 100); // 100ms x 100 = 10 segundos
 
   window.location.href = `/download?url=${encodeURIComponent(url)}`;
-
-  setTimeout(() => {
-    bar.style.width = "100%";
-  }, 4000);
 }
