@@ -45,9 +45,8 @@ button {
 }
 .bar {
   height: 100%;
-  width: 50%;
   background: #3b82f6; /* azul */
-  transition: width 0.5s;
+  transition: width 0.1s;
 }
 .icons {
   display: flex;
