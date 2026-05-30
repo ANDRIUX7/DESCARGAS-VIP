@@ -7,13 +7,20 @@ function login() {
         document.getElementById("app").style.display = "block";
     } else {
         error.style.display = "block";
-        pass.value = ""; // Limpia la contraseña
+        pass.value = "";
         pass.focus();
     }
 }
+
 function descargar() {
-  const url = document.getElementById("url").value;
+  const urlInput = document.getElementById("url");
+  const url = urlInput.value;
   const bar = document.getElementById("bar");
+
+  if (!url.trim()) {
+    alert("Pega una URL primero");
+    return;
+  }
 
   let progreso = 0;
 
@@ -21,8 +28,18 @@ function descargar() {
     progreso += 1;
     bar.style.width = progreso + "%";
 
-    if (progreso >= 100) clearInterval(interval);
-  }, 100); // 100ms x 100 = 10 segundos
+    if (progreso >= 100) {
+      clearInterval(interval);
+
+      // Limpiar campo URL
+      urlInput.value = "";
+
+      // Reiniciar barra
+      setTimeout(() => {
+        bar.style.width = "0%";
+      }, 1000);
+    }
+  }, 100);
 
   window.location.href = `/download?url=${encodeURIComponent(url)}`;
 }
