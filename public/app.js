@@ -1,17 +1,15 @@
 function login() {
-  const pass = document.getElementById("pass").value;
+    const pass = document.getElementById("pass");
+    const error = document.getElementById("error");
 
-  if (pass === "ANDRIUXVIP7") {
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-
-    //  CAMBIAR FONDO A GIF
-    document.body.style.background = "url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExb3lyczk5Yno1bW55Z2t2OGp5MWY0eGE2b3Ryc3c0eTQ0a2RoczVxMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3f63VcWeaGeaQ6AfKk/giphy.gif') no-repeat center center fixed";
-    document.body.style.backgroundSize = "cover";
-
-  } else {
-    alert("Contraseña incorrecta");
-  }
+    if (pass.value === "TU_CONTRASEÑA") {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
+    } else {
+        error.style.display = "block";
+        pass.value = ""; // Limpia la contraseña
+        pass.focus();
+    }
 }
 function descargar() {
   const url = document.getElementById("url").value;
