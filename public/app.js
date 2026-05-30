@@ -2,7 +2,7 @@ function login() {
     const pass = document.getElementById("pass");
     const error = document.getElementById("error");
 
-    if (pass.value === "TU_CONTRASEÑA") {
+    if (pass.value === "ANDRIUX") {
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
     } else {
