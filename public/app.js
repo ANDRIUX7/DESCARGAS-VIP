@@ -22,7 +22,7 @@ function descargar() {
     bar.style.width = progreso + "%";
 
     if (progreso >= 100) clearInterval(interval);
-  }, 200); // 100ms x 100 = 10 segundos
+  }, 100); // 100ms x 100 = 10 segundos
 
   window.location.href = `/download?url=${encodeURIComponent(url)}`;
 }
