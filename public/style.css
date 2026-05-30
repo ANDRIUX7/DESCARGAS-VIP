@@ -43,11 +43,35 @@ button {
   border-radius: 10px;
   overflow: hidden;
 }
+
 .bar {
   height: 100%;
-  background: #3b82f6; /* azul */
-  transition: width 0.1s;
+  width: 0%;
+  background: linear-gradient(
+    90deg,
+    #ff0000,
+    #ff8800,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #ff00ff,
+    #ff0000
+  );
+  background-size: 400% 100%;
+  animation: colores 3s linear infinite;
+  transition: width 0.1s linear;
 }
+
+@keyframes colores {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 400% 50%;
+  }
+}
+
 .icons {
   display: flex;
   justify-content: center;
