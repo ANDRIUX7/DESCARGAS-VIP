@@ -1,8 +1,8 @@
 const express = require("express");
+const { getVideoInfo } = require("javascript-youtube-downloader");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
-const youtubeDl = require("youtube-dl-exec");
-const ffmpeg = require("ffmpeg-static");
 
 const app = express();
 app.use(express.static("public"));
@@ -12,53 +12,47 @@ app.get("/download", async (req, res) => {
 
   if (!url) return res.status(400).send("Falta URL");
 
-  // Plantilla para guardar temporalmente en la carpeta /tmp de Render
-  const outputTemplate = path.join("/tmp", "%(title).50s.%(ext)s");
-
   try {
-    // Ejecución segura usando la librería nativa de Node.js
-    await youtubeDl(url, {
-      format: "bestvideo+bestaudio/best",
-      mergeOutputFormat: "mp4",
-      output: outputTemplate,
-      ffmpegLocation: ffmpeg, // Usa el FFmpeg estático integrado
-      noCheckCertificates: true
-    });
+    // Obtiene la información y el enlace de descarga directo del video
+    const videoInfo = await getVideoInfo(url);
+    
+    // Filtramos para obtener el formato MP4 con mayor calidad disponible
+    const format = videoInfo.formats
+      .filter(f => f.ext === "mp4" && f.url)
+      .sort((a, b) => (b.quality || 0) - (a.quality || 0))[0];
 
-    // Buscar el archivo .mp4 descargado más reciente en /tmp
-    const files = fs.readdirSync("/tmp")
-      .filter(f => f.endsWith(".mp4"))
-      .map(f => ({
-        name: f,
-        time: fs.statSync(path.join("/tmp", f)).mtime.getTime()
-      }))
-      .sort((a, b) => b.time - a.time);
-
-    if (files.length === 0) {
-      return res.status(404).send("No se encontró el archivo en el servidor");
+    if (!format) {
+      return res.status(404).send("No se encontró un formato MP4 válido");
     }
 
-    const file = files[0].name;
-    const filePath = path.join("/tmp", file);
+    const tempFilePath = path.join("/tmp", `video-${Date.now()}.mp4`);
+    const fileStream = fs.createWriteStream(tempFilePath);
 
-    // Forzar la descarga en el navegador del usuario y limpiar el servidor
-    res.download(filePath, file, (downloadErr) => {
-      if (!downloadErr) {
-        try {
-          fs.unlinkSync(filePath); 
-        } catch (unlinkErr) {
-          console.error("No se pudo borrar el archivo temporal:", unlinkErr);
-        }
-      }
+    // Descargamos el archivo directamente en la carpeta /tmp de Render
+    https.get(format.url, (response) => {
+      response.pipe(fileStream);
+
+      fileStream.on("finish", () => {
+        fileStream.close();
+        
+        // Forzamos la descarga al navegador del usuario
+        res.download(tempFilePath, `${videoInfo.title || "video"}.mp4`, (err) => {
+          if (!err) {
+            try { fs.unlinkSync(tempFilePath); } catch (e) {}
+          }
+        });
+      });
+    }).on("error", (err) => {
+      throw err;
     });
 
   } catch (error) {
-    console.error("Error en la descarga:", error.message);
-    return res.status(500).send("Error al procesar y descargar el video");
+    console.error("Error en descarga:", error.message);
+    return res.status(500).send("Error al procesar el enlace de descarga");
   }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("🔥 Server corriendo en puerto " + PORT);
+  console.log("🔥 Server corriendo de forma limpia en puerto " + PORT);
 });
