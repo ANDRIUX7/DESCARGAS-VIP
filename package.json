@@ -1,11 +1,12 @@
 {
-  "name": "downloader-dios",
+  "name": "descargador-dios",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "servidor.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node servidor.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "ffmpeg-static": "^5.2.0"
   }
 }
