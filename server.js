@@ -1,58 +1,55 @@
 const express = require("express");
-const { getVideoInfo } = require("javascript-youtube-downloader");
-const https = require("https");
 const fs = require("fs");
 const path = require("path");
+const { exec } = require("child_process");
+const ffmpeg = require("ffmpeg-static");
 
 const app = express();
 app.use(express.static("public"));
 
-app.get("/download", async (req, res) => {
+// Localiza el ejecutable directamente dentro de node_modules sin descargar nada
+const YTDLP_PATH = path.join(__dirname, "node_modules", "yt-dlp-exec", "bin", "yt-dlp");
+
+app.get("/download", (req, res) => {
   const url = req.query.url;
 
   if (!url) return res.status(400).send("Falta URL");
 
-  try {
-    // Obtiene la información y el enlace de descarga directo del video
-    const videoInfo = await getVideoInfo(url);
-    
-    // Filtramos para obtener el formato MP4 con mayor calidad disponible
-    const format = videoInfo.formats
-      .filter(f => f.ext === "mp4" && f.url)
-      .sort((a, b) => (b.quality || 0) - (a.quality || 0))[0];
+  const outputTemplate = path.join("/tmp", "%(title).50s.%(ext)s");
 
-    if (!format) {
-      return res.status(404).send("No se encontró un formato MP4 válido");
+  // Ejecución directa con el binario local empaquetado
+  const command = `"${YTDLP_PATH}" -f "bestvideo+bestaudio/best" --merge-output-format mp4 --ffmpeg-location "${ffmpeg}" -o "${outputTemplate}" "${url}"`;
+
+  exec(command, (err, stdout, stderr) => {
+    if (err) {
+      console.error("Error ejecucion:", stderr || err.message);
+      return res.status(500).send("Error al descargar el video");
     }
 
-    const tempFilePath = path.join("/tmp", `video-${Date.now()}.mp4`);
-    const fileStream = fs.createWriteStream(tempFilePath);
+    const files = fs.readdirSync("/tmp")
+      .filter(f => f.endsWith(".mp4"))
+      .map(f => ({
+        name: f,
+        time: fs.statSync(path.join("/tmp", f)).mtime.getTime()
+      }))
+      .sort((a, b) => b.time - a.time);
 
-    // Descargamos el archivo directamente en la carpeta /tmp de Render
-    https.get(format.url, (response) => {
-      response.pipe(fileStream);
+    if (files.length === 0) {
+      return res.status(404).send("No se encontró el archivo");
+    }
 
-      fileStream.on("finish", () => {
-        fileStream.close();
-        
-        // Forzamos la descarga al navegador del usuario
-        res.download(tempFilePath, `${videoInfo.title || "video"}.mp4`, (err) => {
-          if (!err) {
-            try { fs.unlinkSync(tempFilePath); } catch (e) {}
-          }
-        });
-      });
-    }).on("error", (err) => {
-      throw err;
+    const file = files[0].name;
+    const filePath = path.join("/tmp", file);
+
+    res.download(filePath, file, (downloadErr) => {
+      if (!downloadErr) {
+        try { fs.unlinkSync(filePath); } catch (e) {}
+      }
     });
-
-  } catch (error) {
-    console.error("Error en descarga:", error.message);
-    return res.status(500).send("Error al procesar el enlace de descarga");
-  }
+  });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("🔥 Server corriendo de forma limpia en puerto " + PORT);
+  console.log("🔥 Servidor operativo de forma local en puerto " + PORT);
 });
